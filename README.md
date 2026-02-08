@@ -21,12 +21,15 @@ Agent Skills are folders of instructions, scripts, and resources that AI agents 
 ```
 PowerSkills/
 ├── README.md
-├── common/
-│   └── __init__.py
 └── pandapower/
-    ├── SKILL.md
-    ├── README.md
-    └── references/
+    ├── SKILL.md              # Main skill guide (progressive disclosure)
+    ├── requirements.txt      # Python dependencies
+    ├── scripts/              # Reusable analysis scripts
+    │   ├── README.md
+    │   ├── quick_check.py
+    │   ├── contingency_analysis.py
+    │   └── network_analysis.py
+    └── references/           # Detailed documentation
         ├── API_REFERENCE.md
         └── EXAMPLES.md
 ```
