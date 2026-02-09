@@ -4,256 +4,265 @@ description: Perform power system analysis using pandapower including power flow
 compatibility: Requires Python 3.10+ and pandapower library
 metadata:
   author: PowerSkills
-  version: "2.0"
+  version: "1.0"
 ---
 
 # Pandapower Power System Analysis
 
-> **Progressive disclosure guide**: Start with Quick Start, then explore as needed.
-> For complex analysis, use the provided scripts in `scripts/`.
+> **How to use this guide**: Start with Quick Start, then follow the sections in order.
+> Each section builds on the previous one. For detailed API docs and worked examples,
+> see [references/](#reference).
 
-## Quick Start
+---
 
-**Load network and run power flow:**
+## 1. Quick Start
 
 ```python
 import pandapower as pp
 
-# Load from file or use test network
-net = pp.from_json("network.json")  # or pp.networks.case14()
+# Load a network (from file or built-in test case)
+net = pp.from_json("network.json")   # from file
+net = pp.networks.case39()           # or built-in IEEE 39-bus
 
 # Run power flow
 pp.runpp(net)
 
-# Check convergence
+# Check results
 if net.converged:
-    print("✓ Power flow converged")
-    print(net.res_bus[['vm_pu', 'va_degree']])
-else:
-    print("❌ Power flow failed")
+    print(net.res_bus[['vm_pu', 'va_degree']])   # bus voltages
+    print(net.res_line[['loading_percent']])       # line loading
 ```
 
-**Quick health check using provided script:**
-
-```bash
-python scripts/quick_check.py network.json
-```
+**For comprehensive automated analysis**, see `scripts/network_analysis.py` ([scripts/README.md](scripts/README.md)).
 
 ---
 
-## Level 1: Basic Analysis
+## 2. Network Inspection
 
-### Load Networks
+Before running any analysis, understand the network you are working with.
+
+### Load a Network
 
 ```python
 # From file
 net = pp.from_json("network.json")
 net = pp.from_pickle("network.p")
 
-# Test networks
-net = pp.networks.case14()      # IEEE 14-bus
-net = pp.networks.case_ieee30() # IEEE 30-bus
-net = pp.networks.case39()      # IEEE 39-bus
+# Built-in IEEE test cases
+net = pp.networks.case14()       # 14-bus
+net = pp.networks.case_ieee30()  # 30-bus
+net = pp.networks.case39()       # 39-bus
+net = pp.networks.case118()      # 118-bus
 ```
+
+### Inspect Network Elements
+
+A pandapower network is a dictionary of pandas DataFrames -- one per element type.
+
+```python
+# Element counts
+print(f"Buses:          {len(net.bus)}")
+print(f"Lines:          {len(net.line)}")
+print(f"Transformers:   {len(net.trafo)}")
+print(f"Loads:          {len(net.load)}")
+print(f"Generators:     {len(net.gen)}")
+print(f"External Grids: {len(net.ext_grid)}")
+
+# View element data (each is a pandas DataFrame)
+print(net.bus)          # bus names, nominal voltages
+print(net.line)         # line parameters, from/to buses
+print(net.load)         # active/reactive power at each bus
+```
+
+**For automated summaries and analysis**, see the provided scripts in [scripts/README.md](scripts/README.md).
+
+---
+
+## 3. Power Flow Analysis
+
+Power flow (load flow) is the fundamental analysis -- it computes voltages, currents, and power flows throughout the network.
 
 ### Run Power Flow
 
 ```python
-# Standard power flow
-pp.runpp(net)
+pp.runpp(net)                     # Newton-Raphson (default)
 
 # With options
-pp.runpp(net, 
-         algorithm='nr',              # Newton-Raphson (default)
+pp.runpp(net,
+         algorithm='nr',                # 'nr', 'bfsw', or 'gs'
          calculate_voltage_angles=True,
          tolerance_mva=1e-8)
+
+# DC power flow (linear approximation, faster)
+pp.rundcpp(net)
+```
+
+### Read Results
+
+After `pp.runpp(net)`, results are stored in `res_*` DataFrames:
+
+| Result Table | Key Columns | What It Tells You |
+|---|---|---|
+| `net.res_bus` | `vm_pu`, `va_degree` | Bus voltage magnitudes and angles |
+| `net.res_line` | `loading_percent`, `p_from_mw`, `pl_mw` | Line power flows, loading, and losses |
+| `net.res_trafo` | `loading_percent`, `p_hv_mw`, `pl_mw` | Transformer flows, loading, and losses |
+| `net.res_gen` | `p_mw`, `q_mvar` | Generator active/reactive output |
+| `net.res_ext_grid` | `p_mw`, `q_mvar` | Slack bus power injection |
+
+```python
+print(net.res_bus[['vm_pu', 'va_degree']])
+print(net.res_line[['loading_percent', 'p_from_mw', 'pl_mw']])
 ```
 
 ### Check for Violations
 
 ```python
-# Voltage violations (0.95 - 1.05 p.u.)
+# Voltage violations (typical limits: 0.95 -- 1.05 p.u.)
 undervoltage = net.res_bus[net.res_bus.vm_pu < 0.95]
-overvoltage = net.res_bus[net.res_bus.vm_pu > 1.05]
+overvoltage  = net.res_bus[net.res_bus.vm_pu > 1.05]
 
-# Equipment overloading
-overloaded_lines = net.res_line[net.res_line.loading_percent > 100]
+# Equipment overloading (> 100% of rating)
+overloaded_lines  = net.res_line[net.res_line.loading_percent > 100]
 overloaded_trafos = net.res_trafo[net.res_trafo.loading_percent > 100]
 ```
 
-**Use the comprehensive check script:**
-
-```python
-from scripts.network_analysis import run_comprehensive_check
-
-results = run_comprehensive_check(net, verbose=True)
-# Returns: voltage violations, loading violations, system losses
-```
+**For comprehensive automated checks**, use the provided analysis scripts (see [scripts/README.md](scripts/README.md)).
 
 ---
 
-## Level 2: Network Building
+## 4. Network Creation
 
-### Create New Network
+Build a network from scratch when you need to model a custom system.
+
+### Create and Populate
 
 ```python
 net = pp.create_empty_network(name="My System", f_hz=60.0)
 
-# Add buses
+# Buses
 bus1 = pp.create_bus(net, vn_kv=110, name="Slack Bus")
 bus2 = pp.create_bus(net, vn_kv=110, name="Load Bus")
 
-# Add slack (reference bus)
+# Slack / reference bus
 pp.create_ext_grid(net, bus=bus1, vm_pu=1.02, va_degree=0)
 
-# Add line
-pp.create_line(net, from_bus=bus1, to_bus=bus2, 
+# Line (using standard type)
+pp.create_line(net, from_bus=bus1, to_bus=bus2,
                length_km=10, std_type="NAYY 4x50 SE")
 
-# Add load
+# Load
 pp.create_load(net, bus=bus2, p_mw=2.0, q_mvar=0.5)
 
 # Run power flow
 pp.runpp(net)
 ```
 
-### Save Networks
+### Save / Load Networks
 
 ```python
-pp.to_json(net, "network.json")    # JSON (recommended)
-pp.to_pickle(net, "network.p")     # Pickle (faster)
+pp.to_json(net, "network.json")      # JSON (recommended, human-readable)
+pp.to_pickle(net, "network.p")       # Pickle (faster for large networks)
+
+net = pp.from_json("network.json")
 ```
 
 ---
 
-## Level 3: Advanced Analysis
+## 5. Contingency Analysis
 
-### N-1 Contingency Analysis
+N-1 contingency analysis tests whether the system remains secure when any single element is removed.
 
-**Use the comprehensive contingency script:**
+### Basic Concept
 
 ```python
-from scripts.contingency_analysis import run_n1_analysis, generate_contingency_report
+# Test a single contingency by disconnecting an element
+test_net = net.deepcopy()
+test_net.line.at[line_idx, 'in_service'] = False
+pp.runpp(test_net)
 
-# Run N-1 analysis for all lines and transformers
-results_df = run_n1_analysis(net, elements=['line', 'trafo'], verbose=True)
-
-# Generate report
-report = generate_contingency_report(results_df, output_file='n1_report.txt')
-print(report)
+# Check if power flow converged and no violations occurred
 ```
 
-**Or run from command line:**
+### For Full N-1 Studies
+
+Use the provided scripts (see [scripts/README.md](scripts/README.md)):
 
 ```bash
 python scripts/contingency_analysis.py network.json
 ```
 
-**Manual N-1 check (for custom logic):**
+Or import as a module:
 
 ```python
-original_net = net.deepcopy()
-
-for line_idx in net.line.index:
-    test_net = original_net.deepcopy()
-    test_net.line.at[line_idx, 'in_service'] = False  # Disconnect line
-    
-    pp.runpp(test_net)
-    
-    if not test_net.converged:
-        print(f"⚠️ Line {line_idx} outage: Power flow diverged")
-    elif test_net.res_bus.vm_pu.min() < 0.95:
-        print(f"⚠️ Line {line_idx} outage: Voltage violation")
+from scripts.contingency_analysis import run_n1_analysis
+results_df = run_n1_analysis(net, elements=['line', 'trafo'])
 ```
 
-### System Loss Analysis
+---
+
+## 6. Advanced Studies
+
+### System Losses
 
 ```python
-from scripts.network_analysis import calculate_system_losses
-
-losses = calculate_system_losses(net)
-print(f"Total losses: {losses['total_losses_mw']:.2f} MW ({losses['loss_percentage']:.2f}%)")
-print(f"  Line losses: {losses['line_losses_mw']:.2f} MW")
-print(f"  Trafo losses: {losses['trafo_losses_mw']:.2f} MW")
+# Calculate losses manually
+line_losses = net.res_line.pl_mw.sum()
+trafo_losses = net.res_trafo.pl_mw.sum() if len(net.trafo) > 0 else 0
+total_losses = line_losses + trafo_losses
 ```
+
+**For detailed loss analysis**, use `scripts/network_analysis.py` (see [scripts/README.md](scripts/README.md)).
 
 ### Load Scaling Study
 
+Sweep load levels to find the system's capacity limits.
+
 ```python
-scaling_factors = [0.5, 1.0, 1.5, 2.0]
 original_loads = net.load.p_mw.copy()
 
-for scale in scaling_factors:
+for scale in [0.5, 1.0, 1.5, 2.0]:
     net.load.p_mw = original_loads * scale
     pp.runpp(net)
-    
+
     if net.converged:
         print(f"Scale {scale}: Min V = {net.res_bus.vm_pu.min():.3f}, "
               f"Max Loading = {net.res_line.loading_percent.max():.1f}%")
 
-# Restore original loads
-net.load.p_mw = original_loads
+net.load.p_mw = original_loads  # restore
+```
+
+### Topology Analysis
+
+```python
+import pandapower.topology as top
+
+connected = top.connected_components(net)    # number of islands
+unsupplied = top.unsupplied_buses(net)       # buses without supply path
 ```
 
 ---
 
-## Result Tables Reference
+## Reference
 
-After `pp.runpp(net)`, results are in `res_*` DataFrames:
+### Provided Scripts
 
-| Table | Key Columns | Description |
-|-------|-------------|-------------|
-| `net.res_bus` | `vm_pu`, `va_degree` | Bus voltages and angles |
-| `net.res_line` | `loading_percent`, `p_from_mw`, `pl_mw` | Line flows and losses |
-| `net.res_trafo` | `loading_percent`, `p_hv_mw`, `pl_mw` | Transformer flows and losses |
-| `net.res_gen` | `p_mw`, `q_mvar` | Generator output |
-| `net.res_load` | `p_mw`, `q_mvar` | Load consumption |
+| Script | Purpose | Usage |
+|---|---|---|
+| `scripts/network_analysis.py` | Network health check and analysis | `from scripts.network_analysis import analyze_network` |
+| `scripts/contingency_analysis.py` | N-1 contingency analysis with report | `python scripts/contingency_analysis.py network.json` |
 
----
+See [`scripts/README.md`](scripts/README.md) for full script documentation.
 
-## Provided Scripts
+### Typical Workflows
 
-This skill includes ready-to-use analysis scripts:
+| Goal | Steps |
+|---|---|
+| Network health check | Load network → `python scripts/network_analysis.py network.json` |
+| N-1 contingency study | Load network → `python scripts/contingency_analysis.py network.json` |
+| Custom analysis | Load network → `from scripts.network_analysis import analyze_network` → use results |
 
-1. **`scripts/quick_check.py`** - Fast network health check
-   ```bash
-   python scripts/quick_check.py network.json
-   python scripts/quick_check.py network.json --v-min 0.90 --v-max 1.10
-   ```
+### Additional Resources
 
-2. **`scripts/contingency_analysis.py`** - Comprehensive N-1 analysis
-   ```bash
-   python scripts/contingency_analysis.py network.json
-   ```
-
-3. **`scripts/network_analysis.py`** - Reusable analysis functions
-   ```python
-   from scripts.network_analysis import run_comprehensive_check
-   results = run_comprehensive_check(net)
-   ```
-
----
-
-## Additional Resources
-
-- **[API Reference](references/API_REFERENCE.md)** - Complete pandapower API documentation
-- **[Examples](references/EXAMPLES.md)** - 10+ practical examples with full code
-- **[Pandapower Docs](https://pandapower.readthedocs.io/)** - Official documentation
-
----
-
-## Common Workflows
-
-**Workflow 1: Quick Analysis**
-1. Load network: `net = pp.from_json("network.json")`
-2. Run: `python scripts/quick_check.py network.json`
-
-**Workflow 2: N-1 Study**
-1. Load network
-2. Run: `python scripts/contingency_analysis.py network.json`
-3. Review: `contingency_report.txt`
-
-**Workflow 3: Custom Analysis**
-1. Load network
-2. Import: `from scripts.network_analysis import *`
-3. Use: `run_comprehensive_check(net, verbose=True)`
+- **[API Reference](references/API_REFERENCE.md)** -- element tables, result tables, function signatures
+- **[Examples](references/EXAMPLES.md)** -- 10 worked examples covering all topics above
+- **[Pandapower Docs](https://pandapower.readthedocs.io/)** -- official documentation

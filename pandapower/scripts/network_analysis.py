@@ -1,267 +1,334 @@
 #!/usr/bin/env python3
 """
-Common power system analysis functions for pandapower networks
+Core analysis functions for pandapower networks.
+
+These functions are designed for agent use - they return structured data
+and can be composed together for custom analysis workflows.
+
+Typical usage:
+    import pandapower as pp
+    from network_analysis import check_violations, calculate_losses, summarize_network
+    
+    net = pp.from_json("network.json")
+    pp.runpp(net)
+    
+    violations = check_violations(net)
+    losses = calculate_losses(net)
+    summary = summarize_network(net)
 """
 
 import pandapower as pp
 import pandas as pd
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 
 
-def check_voltage_violations(
-    net: pp.pandapowerNet,
-    v_min: float = 0.95,
-    v_max: float = 1.05
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """
-    Check for voltage violations in the network.
-    
-    Args:
-        net: pandapower network (must have results from runpp)
-        v_min: Minimum voltage limit in p.u.
-        v_max: Maximum voltage limit in p.u.
-        
-    Returns:
-        Tuple of (undervoltage_df, overvoltage_df)
-    """
-    undervoltage = net.res_bus[net.res_bus.vm_pu < v_min].copy()
-    overvoltage = net.res_bus[net.res_bus.vm_pu > v_max].copy()
-    
-    # Add bus names if available
-    if 'name' in net.bus.columns:
-        undervoltage['bus_name'] = undervoltage.index.map(lambda x: net.bus.at[x, 'name'])
-        overvoltage['bus_name'] = overvoltage.index.map(lambda x: net.bus.at[x, 'name'])
-    
-    return undervoltage, overvoltage
-
-
-def check_loading_violations(
-    net: pp.pandapowerNet,
-    loading_limit: float = 100.0
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """
-    Check for equipment overloading in the network.
-    
-    Args:
-        net: pandapower network (must have results from runpp)
-        loading_limit: Maximum loading percentage
-        
-    Returns:
-        Tuple of (overloaded_lines_df, overloaded_trafos_df)
-    """
-    overloaded_lines = net.res_line[
-        net.res_line.loading_percent > loading_limit
-    ].copy()
-    
-    overloaded_trafos = pd.DataFrame()
-    if len(net.trafo) > 0:
-        overloaded_trafos = net.res_trafo[
-            net.res_trafo.loading_percent > loading_limit
-        ].copy()
-    
-    # Add element names if available
-    if 'name' in net.line.columns:
-        overloaded_lines['line_name'] = overloaded_lines.index.map(
-            lambda x: net.line.at[x, 'name']
-        )
-    
-    if len(overloaded_trafos) > 0 and 'name' in net.trafo.columns:
-        overloaded_trafos['trafo_name'] = overloaded_trafos.index.map(
-            lambda x: net.trafo.at[x, 'name']
-        )
-    
-    return overloaded_lines, overloaded_trafos
-
-
-def calculate_system_losses(net: pp.pandapowerNet) -> Dict[str, float]:
-    """
-    Calculate total system losses.
-    
-    Args:
-        net: pandapower network (must have results from runpp)
-        
-    Returns:
-        Dictionary with loss information
-    """
-    # Line losses
-    line_losses_mw = net.res_line.pl_mw.sum()
-    line_losses_mvar = net.res_line.ql_mvar.sum()
-    
-    # Transformer losses
-    trafo_losses_mw = 0
-    trafo_losses_mvar = 0
-    if len(net.trafo) > 0:
-        trafo_losses_mw = net.res_trafo.pl_mw.sum()
-        trafo_losses_mvar = net.res_trafo.ql_mvar.sum()
-    
-    # Total losses
-    total_losses_mw = line_losses_mw + trafo_losses_mw
-    total_losses_mvar = line_losses_mvar + trafo_losses_mvar
-    
-    # Total generation and load
-    total_generation_mw = 0
-    if len(net.res_gen) > 0:
-        total_generation_mw += net.res_gen.p_mw.sum()
-    if len(net.res_ext_grid) > 0:
-        total_generation_mw += net.res_ext_grid.p_mw.sum()
-    
-    total_load_mw = net.res_load.p_mw.sum() if len(net.res_load) > 0 else 0
-    
-    # Loss percentage
-    loss_percentage = (total_losses_mw / total_generation_mw * 100) if total_generation_mw > 0 else 0
-    
-    return {
-        'line_losses_mw': line_losses_mw,
-        'line_losses_mvar': line_losses_mvar,
-        'trafo_losses_mw': trafo_losses_mw,
-        'trafo_losses_mvar': trafo_losses_mvar,
-        'total_losses_mw': total_losses_mw,
-        'total_losses_mvar': total_losses_mvar,
-        'total_generation_mw': total_generation_mw,
-        'total_load_mw': total_load_mw,
-        'loss_percentage': loss_percentage
-    }
-
-
-def print_network_summary(net: pp.pandapowerNet, include_results: bool = True):
-    """
-    Print a comprehensive network summary.
-    
-    Args:
-        net: pandapower network
-        include_results: Whether to include power flow results
-    """
-    print("="*60)
-    print(f"Network: {net.name if hasattr(net, 'name') else 'Unnamed'}")
-    print("="*60)
-    
-    # Network elements
-    print("\nNetwork Elements:")
-    print(f"  Buses:            {len(net.bus)}")
-    print(f"  Lines:            {len(net.line)}")
-    print(f"  Transformers:     {len(net.trafo)}")
-    print(f"  Loads:            {len(net.load)}")
-    print(f"  Generators:       {len(net.gen)}")
-    print(f"  External Grids:   {len(net.ext_grid)}")
-    
-    if include_results and hasattr(net, 'converged'):
-        print(f"\nPower Flow Status: {'CONVERGED' if net.converged else 'NOT CONVERGED'}")
-        
-        if net.converged:
-            # Voltage summary
-            print(f"\nVoltage Summary:")
-            print(f"  Min: {net.res_bus.vm_pu.min():.4f} p.u.")
-            print(f"  Max: {net.res_bus.vm_pu.max():.4f} p.u.")
-            print(f"  Avg: {net.res_bus.vm_pu.mean():.4f} p.u.")
-            
-            # Loading summary
-            if len(net.res_line) > 0:
-                print(f"\nLine Loading:")
-                print(f"  Max: {net.res_line.loading_percent.max():.1f}%")
-                print(f"  Avg: {net.res_line.loading_percent.mean():.1f}%")
-            
-            if len(net.trafo) > 0 and len(net.res_trafo) > 0:
-                print(f"\nTransformer Loading:")
-                print(f"  Max: {net.res_trafo.loading_percent.max():.1f}%")
-                print(f"  Avg: {net.res_trafo.loading_percent.mean():.1f}%")
-            
-            # Losses
-            losses = calculate_system_losses(net)
-            print(f"\nSystem Losses:")
-            print(f"  Total: {losses['total_losses_mw']:.2f} MW ({losses['loss_percentage']:.2f}%)")
-            print(f"  Lines: {losses['line_losses_mw']:.2f} MW")
-            print(f"  Trafos: {losses['trafo_losses_mw']:.2f} MW")
-    
-    print("="*60)
-
-
-def run_comprehensive_check(
+def check_violations(
     net: pp.pandapowerNet,
     v_min: float = 0.95,
     v_max: float = 1.05,
-    loading_limit: float = 100.0,
-    verbose: bool = True
-) -> Dict[str, any]:
+    loading_limit: float = 100.0
+) -> Dict:
     """
-    Run comprehensive network checks and return results.
+    Check for voltage and loading violations in the network.
     
     Args:
-        net: pandapower network
-        v_min: Minimum voltage limit in p.u.
-        v_max: Maximum voltage limit in p.u.
-        loading_limit: Maximum loading percentage
-        verbose: Print detailed output
+        net: pandapower network (must have run pp.runpp first)
+        v_min: Minimum voltage limit (p.u.)
+        v_max: Maximum voltage limit (p.u.)
+        loading_limit: Maximum loading limit (%)
         
     Returns:
-        Dictionary with check results
+        dict: {
+            'has_violations': bool,
+            'voltage': {
+                'undervoltage_buses': list of bus indices,
+                'overvoltage_buses': list of bus indices,
+                'min_voltage': float,
+                'max_voltage': float
+            },
+            'loading': {
+                'overloaded_lines': list of line indices,
+                'overloaded_trafos': list of trafo indices,
+                'max_line_loading': float,
+                'max_trafo_loading': float
+            }
+        }
     """
-    # Run power flow if not already done
-    if not hasattr(net, 'converged') or not net.converged:
-        pp.runpp(net)
-    
     if not net.converged:
         return {
+            'has_violations': True,
             'converged': False,
             'error': 'Power flow did not converge'
         }
     
-    # Check violations
-    undervoltage, overvoltage = check_voltage_violations(net, v_min, v_max)
-    overloaded_lines, overloaded_trafos = check_loading_violations(net, loading_limit)
-    losses = calculate_system_losses(net)
+    # Voltage violations
+    undervoltage_buses = net.res_bus[net.res_bus.vm_pu < v_min].index.tolist()
+    overvoltage_buses = net.res_bus[net.res_bus.vm_pu > v_max].index.tolist()
     
-    results = {
+    # Loading violations
+    overloaded_lines = net.res_line[net.res_line.loading_percent > loading_limit].index.tolist()
+    overloaded_trafos = []
+    if len(net.trafo) > 0:
+        overloaded_trafos = net.res_trafo[net.res_trafo.loading_percent > loading_limit].index.tolist()
+    
+    has_violations = bool(
+        undervoltage_buses or overvoltage_buses or 
+        overloaded_lines or overloaded_trafos
+    )
+    
+    return {
+        'has_violations': has_violations,
         'converged': True,
         'voltage': {
-            'min': net.res_bus.vm_pu.min(),
-            'max': net.res_bus.vm_pu.max(),
-            'mean': net.res_bus.vm_pu.mean(),
-            'undervoltage_count': len(undervoltage),
-            'overvoltage_count': len(overvoltage),
-            'undervoltage_buses': undervoltage.index.tolist(),
-            'overvoltage_buses': overvoltage.index.tolist()
+            'undervoltage_buses': undervoltage_buses,
+            'overvoltage_buses': overvoltage_buses,
+            'min_voltage': float(net.res_bus.vm_pu.min()),
+            'max_voltage': float(net.res_bus.vm_pu.max())
         },
         'loading': {
-            'max_line_loading': net.res_line.loading_percent.max() if len(net.res_line) > 0 else 0,
-            'max_trafo_loading': net.res_trafo.loading_percent.max() if len(net.trafo) > 0 else 0,
-            'overloaded_lines_count': len(overloaded_lines),
-            'overloaded_trafos_count': len(overloaded_trafos),
-            'overloaded_lines': overloaded_lines.index.tolist(),
-            'overloaded_trafos': overloaded_trafos.index.tolist()
-        },
-        'losses': losses,
-        'has_violations': (
-            len(undervoltage) > 0 or 
-            len(overvoltage) > 0 or 
-            len(overloaded_lines) > 0 or 
-            len(overloaded_trafos) > 0
-        )
+            'overloaded_lines': overloaded_lines,
+            'overloaded_trafos': overloaded_trafos,
+            'max_line_loading': float(net.res_line.loading_percent.max()) if len(net.res_line) > 0 else 0.0,
+            'max_trafo_loading': float(net.res_trafo.loading_percent.max()) if len(net.trafo) > 0 else 0.0
+        }
+    }
+
+
+def calculate_losses(net: pp.pandapowerNet) -> Dict:
+    """
+    Calculate system losses.
+    
+    Args:
+        net: pandapower network (must have run pp.runpp first)
+        
+    Returns:
+        dict: {
+            'total_losses_mw': float,
+            'total_losses_mvar': float,
+            'line_losses_mw': float,
+            'line_losses_mvar': float,
+            'trafo_losses_mw': float,
+            'trafo_losses_mvar': float,
+            'loss_percentage': float,
+            'total_generation_mw': float
+        }
+    """
+    if not net.converged:
+        return {'error': 'Power flow did not converge'}
+    
+    # Line losses
+    line_losses_mw = float(net.res_line.pl_mw.sum())
+    line_losses_mvar = float(net.res_line.ql_mvar.sum())
+    
+    # Transformer losses
+    trafo_losses_mw = 0.0
+    trafo_losses_mvar = 0.0
+    if len(net.trafo) > 0:
+        trafo_losses_mw = float(net.res_trafo.pl_mw.sum())
+        trafo_losses_mvar = float(net.res_trafo.ql_mvar.sum())
+    
+    # Total
+    total_losses_mw = line_losses_mw + trafo_losses_mw
+    total_losses_mvar = line_losses_mvar + trafo_losses_mvar
+    
+    # Generation
+    total_generation_mw = 0.0
+    if len(net.res_gen) > 0:
+        total_generation_mw += float(net.res_gen.p_mw.sum())
+    if len(net.res_ext_grid) > 0:
+        total_generation_mw += float(net.res_ext_grid.p_mw.sum())
+    
+    loss_percentage = (total_losses_mw / total_generation_mw * 100) if total_generation_mw > 0 else 0.0
+    
+    return {
+        'total_losses_mw': total_losses_mw,
+        'total_losses_mvar': total_losses_mvar,
+        'line_losses_mw': line_losses_mw,
+        'line_losses_mvar': line_losses_mvar,
+        'trafo_losses_mw': trafo_losses_mw,
+        'trafo_losses_mvar': trafo_losses_mvar,
+        'loss_percentage': loss_percentage,
+        'total_generation_mw': total_generation_mw
+    }
+
+
+def summarize_network(net: pp.pandapowerNet) -> Dict:
+    """
+    Get network element counts and basic statistics.
+    
+    Args:
+        net: pandapower network
+        
+    Returns:
+        dict: {
+            'name': str,
+            'elements': {
+                'buses': int,
+                'lines': int,
+                'transformers': int,
+                'loads': int,
+                'generators': int,
+                'ext_grids': int
+            },
+            'results': {  # only if converged
+                'converged': bool,
+                'min_voltage': float,
+                'max_voltage': float,
+                'max_line_loading': float,
+                'max_trafo_loading': float
+            }
+        }
+    """
+    summary = {
+        'name': net.name if hasattr(net, 'name') else 'Unnamed',
+        'elements': {
+            'buses': len(net.bus),
+            'lines': len(net.line),
+            'transformers': len(net.trafo),
+            'loads': len(net.load),
+            'generators': len(net.gen),
+            'ext_grids': len(net.ext_grid)
+        }
     }
     
-    if verbose:
-        print("\n" + "="*60)
-        print("COMPREHENSIVE NETWORK CHECK")
-        print("="*60)
-        print(f"\nPower Flow: {'CONVERGED' if results['converged'] else 'FAILED'}")
-        
-        print(f"\nVoltage Analysis:")
-        print(f"  Range: {results['voltage']['min']:.4f} - {results['voltage']['max']:.4f} p.u.")
-        print(f"  Undervoltage buses (< {v_min}): {results['voltage']['undervoltage_count']}")
-        print(f"  Overvoltage buses (> {v_max}): {results['voltage']['overvoltage_count']}")
-        
-        print(f"\nLoading Analysis:")
-        print(f"  Max line loading: {results['loading']['max_line_loading']:.1f}%")
-        print(f"  Max trafo loading: {results['loading']['max_trafo_loading']:.1f}%")
-        print(f"  Overloaded lines (> {loading_limit}%): {results['loading']['overloaded_lines_count']}")
-        print(f"  Overloaded trafos (> {loading_limit}%): {results['loading']['overloaded_trafos_count']}")
-        
-        print(f"\nSystem Losses:")
-        print(f"  Total: {results['losses']['total_losses_mw']:.2f} MW ({results['losses']['loss_percentage']:.2f}%)")
-        
-        print(f"\nOverall Status: {'⚠️  VIOLATIONS DETECTED' if results['has_violations'] else '✓ SYSTEM HEALTHY'}")
-        print("="*60 + "\n")
+    if hasattr(net, 'converged') and net.converged:
+        summary['results'] = {
+            'converged': True,
+            'min_voltage': float(net.res_bus.vm_pu.min()),
+            'max_voltage': float(net.res_bus.vm_pu.max()),
+            'max_line_loading': float(net.res_line.loading_percent.max()) if len(net.res_line) > 0 else 0.0,
+            'max_trafo_loading': float(net.res_trafo.loading_percent.max()) if len(net.trafo) > 0 else 0.0
+        }
     
+    return summary
+
+
+def analyze_network(
+    net: pp.pandapowerNet,
+    v_min: float = 0.95,
+    v_max: float = 1.05,
+    loading_limit: float = 100.0
+) -> Dict:
+    """
+    Complete network analysis combining summary, violations, and losses.
+    
+    This is the main function agents should use for comprehensive analysis.
+    
+    Args:
+        net: pandapower network
+        v_min: Minimum voltage limit (p.u.)
+        v_max: Maximum voltage limit (p.u.)
+        loading_limit: Maximum loading limit (%)
+        
+    Returns:
+        dict: Combined results from summarize_network, check_violations, and calculate_losses
+    """
+    # Run power flow if not already done
+    if not hasattr(net, 'converged'):
+        try:
+            pp.runpp(net)
+        except Exception as e:
+            return {
+                'error': f'Power flow failed: {str(e)}',
+                'converged': False
+            }
+    
+    if not net.converged:
+        return {
+            'error': 'Power flow did not converge',
+            'converged': False
+        }
+    
+    return {
+        'summary': summarize_network(net),
+        'violations': check_violations(net, v_min, v_max, loading_limit),
+        'losses': calculate_losses(net)
+    }
+
+
+def print_analysis_report(analysis_results: Dict):
+    """
+    Print a formatted report from analyze_network results.
+    
+    Args:
+        analysis_results: Dict returned by analyze_network()
+    """
+    if 'error' in analysis_results:
+        print(f"ERROR: {analysis_results['error']}")
+        return
+    
+    summary = analysis_results['summary']
+    violations = analysis_results['violations']
+    losses = analysis_results['losses']
+    
+    print("="*60)
+    print(f"Network Analysis: {summary['name']}")
+    print("="*60)
+    
+    print("\nNetwork Elements:")
+    for key, value in summary['elements'].items():
+        print(f"  {key:15s}: {value}")
+    
+    if 'results' in summary:
+        print(f"\nPower Flow: CONVERGED")
+        print(f"  Voltage range: {summary['results']['min_voltage']:.4f} - {summary['results']['max_voltage']:.4f} p.u.")
+        print(f"  Max line loading: {summary['results']['max_line_loading']:.1f}%")
+        if summary['elements']['transformers'] > 0:
+            print(f"  Max trafo loading: {summary['results']['max_trafo_loading']:.1f}%")
+    
+    print("\nViolations:")
+    if violations['has_violations']:
+        v = violations['voltage']
+        if v['undervoltage_buses']:
+            print(f"  ⚠️  Undervoltage: {len(v['undervoltage_buses'])} buses")
+        if v['overvoltage_buses']:
+            print(f"  ⚠️  Overvoltage: {len(v['overvoltage_buses'])} buses")
+        
+        l = violations['loading']
+        if l['overloaded_lines']:
+            print(f"  ⚠️  Overloaded lines: {len(l['overloaded_lines'])}")
+        if l['overloaded_trafos']:
+            print(f"  ⚠️  Overloaded transformers: {len(l['overloaded_trafos'])}")
+    else:
+        print("  ✓ No violations")
+    
+    print("\nSystem Losses:")
+    print(f"  Total: {losses['total_losses_mw']:.2f} MW ({losses['loss_percentage']:.2f}%)")
+    print(f"  Lines: {losses['line_losses_mw']:.2f} MW")
+    if summary['elements']['transformers'] > 0:
+        print(f"  Transformers: {losses['trafo_losses_mw']:.2f} MW")
+    
+    print("="*60)
+
+
+# Backward compatibility - keep old function names as aliases
+def run_comprehensive_check(net, v_min=0.95, v_max=1.05, loading_limit=100.0, verbose=True):
+    """Legacy function - use analyze_network() instead."""
+    results = analyze_network(net, v_min, v_max, loading_limit)
+    if verbose:
+        print_analysis_report(results)
     return results
+
+
+def calculate_system_losses(net):
+    """Legacy function - use calculate_losses() instead."""
+    return calculate_losses(net)
+
+
+def print_network_summary(net, include_results=True):
+    """Legacy function - use print_analysis_report(analyze_network(net)) instead."""
+    if include_results:
+        results = analyze_network(net)
+        print_analysis_report(results)
+    else:
+        summary = summarize_network(net)
+        print("="*60)
+        print(f"Network: {summary['name']}")
+        print("="*60)
+        print("\nNetwork Elements:")
+        for key, value in summary['elements'].items():
+            print(f"  {key:15s}: {value}")
+        print("="*60)
 
 
 if __name__ == "__main__":
@@ -269,20 +336,18 @@ if __name__ == "__main__":
     
     if len(sys.argv) < 2:
         print("Usage: python network_analysis.py <network_file.json>")
+        print("\nExample:")
+        print("  python network_analysis.py case39.json")
         sys.exit(1)
     
     network_file = sys.argv[1]
     
-    # Load and analyze network
     print(f"Loading network from {network_file}...")
     net = pp.from_json(network_file)
     
-    print("\nRunning power flow...")
+    print("Running power flow...")
     pp.runpp(net)
     
-    # Print summary
-    print_network_summary(net)
-    
-    # Run comprehensive check
-    print("\n")
-    results = run_comprehensive_check(net, verbose=True)
+    # Run and print analysis
+    results = analyze_network(net)
+    print_analysis_report(results)
