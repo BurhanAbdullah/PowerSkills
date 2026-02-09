@@ -276,11 +276,11 @@ MIT License
 
 ### Core Team
 
-- Qian Zhang ([LinkedIn](https://www.linkedin.com/in/qian-zhang-harvard/))
-- Matheus Duarte ([LinkedIn](https://www.linkedin.com/in/matheusduarte/))
-- Muhy Eddin Za'ter ([Google Scholar](https://scholar.google.com/citations?user=_IFFYFAAAAAJ&hl=en))
+- [Qian Zhang](https://www.linkedin.com/in/qian-zhang-harvard/)
+- [Matheus Duarte](https://www.linkedin.com/in/matheusduarte/)
+- [Muhy Eddin Za'ter](https://scholar.google.com/citations?user=_IFFYFAAAAAJ&hl=en)
 
 ### Special Thanks
 
 - All contributors who help make this project better
-- The Power and AI Initiative (PAI) at Harvard SEAS ([website](https://pai.seas.harvard.edu/))
+- [The Power and AI Initiative (PAI) at Harvard SEAS](https://pai.seas.harvard.edu/)
