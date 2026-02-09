@@ -10,7 +10,7 @@ metadata:
 # PyPSA Power System Optimization
 
 > **How to use this guide**: Start with Quick Start, then follow sections in order.
-> For production analysis tools, see [scripts/README.md](scripts/README.md).
+> For production analysis tools, use the scripts in `PyPSA/scripts/`.
 
 ---
 
@@ -33,7 +33,7 @@ print(network.generators_t.p)     # generator dispatch
 print(network.buses_t.marginal_price)  # nodal prices
 ```
 
-**For automated analysis**, use the provided scripts (see [scripts/README.md](scripts/README.md)).
+**For automated analysis**, use the provided scripts in `PyPSA/scripts/`.
 
 ---
 
@@ -291,7 +291,7 @@ test_network.optimize()
 
 ### For Full N-1 Studies
 
-Use the provided scripts (see [scripts/README.md](scripts/README.md)):
+Use the provided script:
 
 ```bash
 python scripts/contingency_analysis.py network.nc
@@ -383,7 +383,7 @@ for cost in costs:
 | `scripts/expansion_analysis.py` | Capacity expansion studies | `from expansion_analysis import analyze_expansion` |
 | `scripts/contingency_analysis.py` | N-1 contingency analysis | `from contingency_analysis import analyze_n1` |
 
-See [scripts/README.md](scripts/README.md) for complete documentation.
+See the scripts in `PyPSA/scripts/` for CLI entrypoints and importable APIs.
 
 ### Typical Workflows
 

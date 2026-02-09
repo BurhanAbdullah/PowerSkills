@@ -25,7 +25,6 @@ PowerSkills/
     ├── SKILL.md                       # Main skill guide (teaches concepts & API)
     ├── requirements.txt               # Dependencies with pinned versions
     ├── scripts/                       # Agent-friendly analysis tools
-    │   ├── README.md                  # Script documentation with return formats
     │   └── *.py                       # Python modules (CLI + importable)
     └── references/                    # Detailed reference docs
         ├── API_REFERENCE.md           # Data structures, function signatures
@@ -74,7 +73,6 @@ Use this template when creating a new skill for a different software tool. The s
 ├── SKILL.md                  # Main entry point (the agent reads this first)
 ├── requirements.txt          # Pinned dependencies
 ├── scripts/                  # Ready-to-use scripts
-│   ├── README.md             # Script docs (usage, parameters, output)
 │   └── *.py                  # One script per major workflow
 └── references/               # Deep-dive documentation
     ├── API_REFERENCE.md      # Data structures, function signatures, tables
@@ -99,7 +97,7 @@ metadata:
 # <Tool Name> <Domain> Analysis
 
 > **How to use this guide**: Start with Quick Start, then follow sections in order.
-> For production analysis tools, see [scripts/README.md](scripts/README.md).
+> For production analysis tools, use the scripts in `scripts/`.
 
 ## 1. Quick Start
 Minimal code (5-10 lines) showing the most basic workflow.
@@ -136,7 +134,7 @@ More sophisticated studies that build on the core.
 ## Reference
 Summary tables and links.
 - Provided scripts (brief table)
-- Links to scripts/README.md, references/, external docs
+- Links to scripts/, references/, external docs
 ```
 
 **Key principles for SKILL.md:**
@@ -147,7 +145,7 @@ Summary tables and links.
 | Progressive disclosure | Number sections 1-N; each builds on the previous |
 | Quick Start first | Section 1 should be copy-paste runnable in <30 seconds |
 | Inline brevity | If an example exceeds ~10 lines, move it to references/ or scripts/ |
-| Reference scripts/ early and often | Link to scripts/README.md whenever suggesting automation |
+| Reference scripts/ early and often | Point to scripts/ modules/CLIs whenever suggesting automation |
 
 ### API_REFERENCE.md Structure
 
@@ -211,7 +209,7 @@ Each script should:
 - Provide **helper functions** for filtering/formatting results
 - Include **docstrings** with Args/Returns documentation
 
-**scripts/README.md should document:**
+**scripts/ should include:**
 - Main function for each script with its return structure
 - Example return values (show the dict/list structure)
 - Individual helper functions
@@ -252,9 +250,9 @@ matplotlib>=3.5.0
 
 - [ ] `SKILL.md` follows numbered progressive disclosure with brief inline examples (no scripts)
 - [ ] `SKILL.md` Quick Start section is copy-paste runnable in <30 seconds
-- [ ] `SKILL.md` references scripts/README.md whenever suggesting automation
+- [ ] `SKILL.md` references the `scripts/` tools whenever suggesting automation
 - [ ] `scripts/` has clear main functions that return structured data (dicts/lists)
-- [ ] `scripts/README.md` documents return value structures with examples
+- [ ] `scripts/` functions return structured data (dicts/lists) and have docstrings
 - [ ] `scripts/` work as both CLI tools and importable Python modules
 - [ ] `references/API_REFERENCE.md` covers all data structures and key functions
 - [ ] `references/EXAMPLES.md` has 5-10+ self-contained examples ordered basic to advanced

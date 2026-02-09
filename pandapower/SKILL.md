@@ -33,7 +33,7 @@ if net.converged:
     print(net.res_line[['loading_percent']])       # line loading
 ```
 
-**For comprehensive automated analysis**, see `scripts/network_analysis.py` ([scripts/README.md](scripts/README.md)).
+**For comprehensive automated analysis**, use `scripts/network_analysis.py` and `scripts/contingency_analysis.py`.
 
 ---
 
@@ -74,7 +74,7 @@ print(net.line)         # line parameters, from/to buses
 print(net.load)         # active/reactive power at each bus
 ```
 
-**For automated summaries and analysis**, see the provided scripts in [scripts/README.md](scripts/README.md).
+**For automated summaries and analysis**, use the scripts in `pandapower/scripts/`.
 
 ---
 
@@ -126,7 +126,7 @@ overloaded_lines  = net.res_line[net.res_line.loading_percent > 100]
 overloaded_trafos = net.res_trafo[net.res_trafo.loading_percent > 100]
 ```
 
-**For comprehensive automated checks**, use the provided analysis scripts (see [scripts/README.md](scripts/README.md)).
+**For comprehensive automated checks**, use `scripts/network_analysis.py`.
 
 ---
 
@@ -185,7 +185,7 @@ pp.runpp(test_net)
 
 ### For Full N-1 Studies
 
-Use the provided scripts (see [scripts/README.md](scripts/README.md)):
+Use the provided script:
 
 ```bash
 python scripts/contingency_analysis.py network.json
@@ -211,7 +211,7 @@ trafo_losses = net.res_trafo.pl_mw.sum() if len(net.trafo) > 0 else 0
 total_losses = line_losses + trafo_losses
 ```
 
-**For detailed loss analysis**, use `scripts/network_analysis.py` (see [scripts/README.md](scripts/README.md)).
+**For detailed loss analysis**, use `scripts/network_analysis.py`.
 
 ### Load Scaling Study
 
@@ -251,7 +251,7 @@ unsupplied = top.unsupplied_buses(net)       # buses without supply path
 | `scripts/network_analysis.py` | Network health check and analysis | `from scripts.network_analysis import analyze_network` |
 | `scripts/contingency_analysis.py` | N-1 contingency analysis with report | `python scripts/contingency_analysis.py network.json` |
 
-See [`scripts/README.md`](scripts/README.md) for full script documentation.
+See the scripts in `pandapower/scripts/` for CLI entrypoints and importable APIs.
 
 ### Typical Workflows
 
