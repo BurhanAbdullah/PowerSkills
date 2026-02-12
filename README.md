@@ -6,6 +6,12 @@ Agent Skills for power system analysis. This repository provides AI agents with 
 
 Agent Skills are folders of instructions, scripts, and resources that AI agents can discover and use to perform tasks more accurately and efficiently. They follow the [Agent Skills specification](https://agentskills.io/specification) and are compatible with Cursor, Claude Code, and other skills-compatible AI agents.
 
+## Video Demos
+
+- [PowerSkills + PowerMCP](https://www.youtube.com/watch?v=bxZu47f6fUE):
+This demo shows how PowerSkills and PowerMCP can be combined to equip AI agents with specialized knowledge and structured instructions for power-system simulation, analysis, and optimization across a range of industry software tools. The final report will follow an industry-standard format.
+
+
 ## Available Skills
 
 | Skill | Description | Status |
