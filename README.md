@@ -26,6 +26,7 @@ These skills mirror the current software list in PowerMCP.
 | [PowerWorld](PowerWorld/) | Steady-state analysis and sensitivities | `open_case`, `run_powerflow`, result queries | contingencies, parameter changes, PTDF or LODF or Jacobian tools |
 | [PyPSA](PyPSA/) | Planning, OPF, and expansion studies | `load_network` or `create_network`, network inspection | `optimize_network`, `optimize_investment`, import or export flows |
 | [pandapower](pandapower/) | AC analysis and screening studies | `load_network` or `create_empty_network`, `get_network_info`, `run_power_flow` | `run_contingency_analysis` |
+| [surge](surge/) | Transmission analysis, sensitivities, OPF, contingency, ATC, dispatch | `load_builtin_case` or `load_network`, `get_network_info`, `run_ac_power_flow` | `compute_ptdf` / `compute_lodf`, `run_dc_opf` / `run_scopf`, `run_n1_branch_contingency`, `compute_nerc_atc`, `run_scuc` |
 
 ## Available mitigation skills
 
