@@ -27,6 +27,8 @@ Quote the weak bus + voltage or the loaded element rather than saying "there is 
 |---|---|
 | `get_bus_voltages` shows pu outside the feeder band (e.g. < 0.95 or > 1.05) | `voltage-violation-mitigation` |
 | A line, transformer, or regulator loaded above its rating | `thermal-overload-mitigation` |
+| `compile_and_solve` succeeds to compile but the solution diverges | `convergence-failure-mitigation` |
+| The study is DER (PV, storage) integration or hosting capacity on the feeder | `der-hosting-capacity-mitigation` |
 
 ## Deliver
 - The compiled feeder and base-case status.

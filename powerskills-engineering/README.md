@@ -11,5 +11,10 @@ Senior power-engineer mitigation playbooks. Each one starts from an observed pro
 | `contingency-mitigation` | N-1 / N-2 violations or weak corrective-action plans |
 | `dynamic-stability-mitigation` | Poor damping, transient instability, slow voltage recovery |
 | `operations-planning-mitigation` | OPF/UC infeasibility, high curtailment, congestion, reserve shortage |
+| `convergence-failure-mitigation` | Power flow diverges or fails to solve |
+| `short-circuit-mitigation` | Fault duty above breaker ratings |
+| `frequency-response-mitigation` | Low inertia, poor nadir/RoCoF, weak primary frequency response |
+| `interconnection-impact-mitigation` | Screening a new generator, storage, or large-load interconnection |
+| `der-hosting-capacity-mitigation` | DER-driven voltage rise, reverse flow, protection desensitization |
 
 See the [repository README](../README.md) for install instructions (Claude Code, Codex, Claude Desktop).

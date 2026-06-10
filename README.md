@@ -7,7 +7,7 @@ The skills are packaged as two [Agent Skills](https://agentskills.io/) plugins i
 | Plugin | What it is | Skills |
 | --- | --- | --- |
 | [`powerskills-tool`](powerskills-tool/) | Progressive-disclosure workflows for power-system software | 10 |
-| [`powerskills-engineering`](powerskills-engineering/) | Senior-engineer mitigation playbooks | 5 |
+| [`powerskills-engineering`](powerskills-engineering/) | Senior-engineer mitigation playbooks | 10 |
 
 ## How this repo differs from PowerMCP
 
@@ -15,7 +15,7 @@ The skills are packaged as two [Agent Skills](https://agentskills.io/) plugins i
    - Start with the lowest-risk actions first: open or load the case, inspect the model, solve the base case, and only then move to advanced studies.
    - Avoid jumping directly into contingency analysis, dynamics, matrix extraction, or investment optimization before the base case is credible.
 2. **Senior engineer mitigation skills**
-   - Add issue-driven playbooks for voltage violations, thermal overloads, contingency findings, dynamic stability problems, and planning infeasibilities.
+   - Add issue-driven playbooks for voltage violations, thermal overloads, contingency findings, dynamic stability problems, planning infeasibilities, convergence failures, fault-duty problems, frequency response, interconnection impacts, and DER hosting capacity.
    - Move beyond violation reporting into corrective action, tradeoff discussion, and validation steps.
 
 Every `powerskills-tool` skill ends with an **Escalation triggers** table that maps a concrete observation (e.g. a bus below 0.95 pu, a branch above 100% loading, a binding N-1) to the matching `powerskills-engineering` playbook — so the handoff is driven by numbers, not vibes.
@@ -46,6 +46,11 @@ These skills mirror the current software list in PowerMCP.
 | [contingency-mitigation](powerskills-engineering/skills/contingency-mitigation/) | N-1 or N-2 violations or weak corrective-action plans | pre-contingency fixes, corrective switching, RAS screening, long-term upgrades |
 | [dynamic-stability-mitigation](powerskills-engineering/skills/dynamic-stability-mitigation/) | Poor damping, transient instability, slow voltage recovery | model checks, dispatch relief, AVR or PSS or governor tuning, dynamic VAR support |
 | [operations-planning-mitigation](powerskills-engineering/skills/operations-planning-mitigation/) | OPF or UC infeasibility, high curtailment, congestion, reserve shortage | data cleanup, simpler screening solves, flexibility additions, constraint review |
+| [convergence-failure-mitigation](powerskills-engineering/skills/convergence-failure-mitigation/) | Power flow diverges or fails to solve in any tool | data checks, island/slack review, staged control relaxation, stress reduction |
+| [short-circuit-mitigation](powerskills-engineering/skills/short-circuit-mitigation/) | Fault duty above breaker ratings, rising fault levels | study verification, bus splitting, series reactors, breaker upgrades |
+| [frequency-response-mitigation](powerskills-engineering/skills/frequency-response-mitigation/) | Low inertia, poor nadir or RoCoF, weak primary response, UFLS risk | governor headroom, fast frequency response, inertia additions, droop/deadband fixes |
+| [interconnection-impact-mitigation](powerskills-engineering/skills/interconnection-impact-mitigation/) | New generator, storage, or large-load interconnection screening | N-1 screens at the POI, SCR/weak-grid checks, reactive requirements, upgrade sizing |
+| [der-hosting-capacity-mitigation](powerskills-engineering/skills/der-hosting-capacity-mitigation/) | DER-driven voltage rise, reverse flow, protection desensitization | inverter Volt-VAR/export limits, regulator settings, protection re-checks, reinforcement |
 
 ## Install
 
@@ -106,7 +111,7 @@ PowerSkills/
 │   ├── .claude-plugin/plugin.json
 │   ├── README.md
 │   └── skills/
-│       └── voltage-violation-mitigation/ … operations-planning-mitigation/   # 5 mitigation skills
+│       └── voltage-violation-mitigation/ … der-hosting-capacity-mitigation/  # 10 mitigation skills
 └── skill-creator/                  # authoring/validation tooling (not part of either plugin)
 ```
 

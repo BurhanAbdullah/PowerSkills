@@ -43,6 +43,8 @@ Map observed violations to the mitigation skill that handles them. If multiple t
 | `run_n1_*` returns ≥ 1 binding contingency | `contingency-mitigation` |
 | `get_islands()` returns > 1 island after a contingency | `contingency-mitigation` |
 | SCED / SCUC infeasible, reserve shortage, or LMP volatility | `operations-planning-mitigation` |
+| `run_ac_power_flow` fails to converge on the base case | `convergence-failure-mitigation` |
+| The study is a new generator, storage, or large-load connection at a POI | `interconnection-impact-mitigation` |
 
 Report the specific numbers that triggered the escalation (bus + vm_pu, branch + loading %, contingency label). Do not say "violations exist" without values.
 

@@ -25,6 +25,8 @@ Map what the solve reports to the mitigation skill that handles it, and quote th
 | `res_bus.vm_pu` < 0.95 or > 1.05 | `voltage-violation-mitigation` |
 | `res_line` / `res_trafo` `loading_percent` > 100 | `thermal-overload-mitigation` |
 | `run_contingency_analysis` flags any N-1 violation or islanding | `contingency-mitigation` |
+| `run_power_flow` fails to converge | `convergence-failure-mitigation` |
+| The study is DER (PV, storage) integration on a distribution network | `der-hosting-capacity-mitigation` |
 
 ## Local assets in this skill
 - `case39.json` — a ready test network.
