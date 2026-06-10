@@ -134,7 +134,7 @@ Contributors should use Skill Creator when adding or updating skills.
 - [Agent Skills](https://agentskills.io/) - open skill format and ecosystem
 
 ### Core Team
-- [Qian Zhang](https://www.linkedin.com/in/qian-zhang-75323111b/), [Matheus Duarte](https://www.linkedin.com/in/matheusduarte/), [Muhy Eddin Za’ter](https://scholar.google.com/citations?user=_IFFYFAAAAAJ&hl=en)
+- [Qian Zhang](https://www.linkedin.com/in/qian-zhang-75323111b/), [Matheus Duarte](https://www.linkedin.com/in/matheusduarte/), [Muhy Eddin Za’ter](https://scholar.google.com/citations?user=_IFFYFAAAAAJ&hl=en), [Drew Gray](https://www.linkedin.com/in/drew-gray-b09ba426/)
 
 ## License
 
