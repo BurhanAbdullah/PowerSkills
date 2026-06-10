@@ -1,0 +1,11 @@
+{
+  "name": "powerskills-engineering",
+  "description": "Senior power-engineer mitigation playbooks: voltage violations, thermal overloads, contingency (N-1/N-2) findings, dynamic-stability problems, and operations/planning infeasibilities. Issue-driven and software-agnostic; triggered from the escalation tables in the powerskills-tool skills.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Power-Agent",
+    "url": "https://github.com/Power-Agent/PowerSkills"
+  },
+  "homepage": "https://github.com/Power-Agent/PowerSkills",
+  "keywords": ["power-systems", "grid-operations", "voltage", "thermal-overload", "contingency", "n-1", "stability", "mitigation", "powermcp"]
+}
