@@ -1,0 +1,37 @@
+---
+name: pandapower
+description: Progressive-disclosure workflow for pandapower power-system studies. Use whenever the user wants to load, build, or inspect a pandapower network, run AC power flow, check bus voltages or line and transformer loading, or screen N-1 contingencies — even when they just say "run a load flow", "check this case", "is anything overloaded", or name a case file like case39.json. Exposes a clean base-case solve before advanced outage studies. Reach for this instead of answering pandapower grid questions unaided.
+---
+
+# pandapower workflow
+
+Start with the network model and a clean base-case solve. Use contingency analysis only after the steady-state case is credible.
+
+## Default tool ladder
+1. `load_network(file_path)` or `create_empty_network()`
+2. `get_network_info()` to inspect buses, lines, transformers, generators, loads, and switches.
+3. `run_power_flow(...)` to establish the base operating point.
+4. `run_contingency_analysis(...)` only after the base case solves and the monitoring limits are clear.
+
+## Working rules
+- Do not run contingencies before checking the base-case voltages and loading.
+- Use pandapower for AC feasibility and fast screening, then escalate only when the question requires more.
+
+## Escalation triggers
+Map what the solve reports to the mitigation skill that handles it, and quote the numbers that tripped it (bus + vm_pu, element + loading %) rather than saying "violations exist".
+
+| Observation | Escalate to |
+|---|---|
+| `res_bus.vm_pu` < 0.95 or > 1.05 | `voltage-violation-mitigation` |
+| `res_line` / `res_trafo` `loading_percent` > 100 | `thermal-overload-mitigation` |
+| `run_contingency_analysis` flags any N-1 violation or islanding | `contingency-mitigation` |
+
+## Local assets in this skill
+- `case39.json` — a ready test network.
+- `scripts/network_analysis.py` — structured base-case review.
+- `scripts/contingency_analysis.py` — local N-1 screening.
+
+## Deliver
+- The network loaded and whether the base case converged.
+- The key voltage or loading findings.
+- Whether contingency or mitigation work is now justified.
