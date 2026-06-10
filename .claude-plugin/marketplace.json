@@ -18,10 +18,10 @@
     {
       "name": "powerskills-engineering",
       "source": "./powerskills-engineering",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "science",
-      "description": "Senior power-engineer mitigation playbooks: voltage violations, thermal overloads, contingency (N-1/N-2) findings, dynamic-stability problems, and operations/planning infeasibilities. Issue-driven, software-agnostic, and triggered from the escalation tables in the powerskills-tool skills.",
-      "keywords": ["power-systems", "grid-operations", "voltage", "thermal-overload", "contingency", "n-1", "stability", "mitigation", "powermcp"]
+      "description": "Senior power-engineer mitigation playbooks: voltage violations, thermal overloads, contingency (N-1/N-2) findings, dynamic-stability problems, operations/planning infeasibilities, convergence failures, short-circuit duty, frequency response, interconnection impacts, and DER hosting capacity. Issue-driven, software-agnostic, and triggered from the escalation tables in the powerskills-tool skills.",
+      "keywords": ["power-systems", "grid-operations", "voltage", "thermal-overload", "contingency", "n-1", "stability", "frequency-response", "short-circuit", "interconnection", "der", "hosting-capacity", "mitigation", "powermcp"]
     }
   ]
 }

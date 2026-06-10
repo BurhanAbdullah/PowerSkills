@@ -26,6 +26,8 @@ Quote the bus or branch and its value rather than saying "violations exist". Use
 | Bus voltage < 0.95 or > 1.05 pu after `solve_case` | `voltage-violation-mitigation` |
 | Branch loading above its MVA rating | `thermal-overload-mitigation` |
 | Contingency run returns binding N-1 cases | `contingency-mitigation` |
+| `solve_case` fails to converge | `convergence-failure-mitigation` |
+| Fault duty near or above breaker interrupting ratings | `short-circuit-mitigation` |
 
 ## Deliver
 - The case, the command path chosen, and why it was needed.

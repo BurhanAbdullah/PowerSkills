@@ -29,6 +29,7 @@ Quote the numbers that tripped each row (bus + v_mag_pu, element + loading, infe
 | Line or transformer loaded > 100% of `s_nom` | `thermal-overload-mitigation` |
 | `run_contingency_analysis` N-1 overload or post-outage islanding | `contingency-mitigation` |
 | `optimize_network` / `optimize_investment` infeasible, reserve-short, or heavily curtailed | `operations-planning-mitigation` |
+| `run_power_flow` fails to converge | `convergence-failure-mitigation` |
 
 ## Local assets in this skill
 - `case39.nc` — a ready test network.

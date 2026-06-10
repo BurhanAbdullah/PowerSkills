@@ -27,6 +27,7 @@ Quote the violated bus or branch and its value rather than saying "violations ex
 | `get_voltage_violations` returns low or high buses | `voltage-violation-mitigation` |
 | `get_overload_violations` returns loaded branches | `thermal-overload-mitigation` |
 | `run_contingency_analysis` returns binding N-1 cases | `contingency-mitigation` |
+| `solve_case` fails to converge | `convergence-failure-mitigation` |
 
 ## Deliver
 - The case opened and base-case status.

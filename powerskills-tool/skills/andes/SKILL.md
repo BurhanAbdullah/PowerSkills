@@ -26,6 +26,7 @@ Quote the failing metric (mode + damping ratio, channel + recovery time) rather 
 | Eigenvalue with damping ratio below ~5% or any right-half-plane mode | `dynamic-stability-mitigation` |
 | Time-domain run shows growing angles, sustained oscillations, or failed voltage recovery | `dynamic-stability-mitigation` |
 | Base power-flow voltages outside [0.95, 1.05] pu | `voltage-violation-mitigation` |
+| Frequency nadir, RoCoF, or settling frequency violates its limit after a generation-loss event | `frequency-response-mitigation` |
 
 ## Deliver
 - The case used and whether the base case solved.

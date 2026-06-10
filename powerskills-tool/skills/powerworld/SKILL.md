@@ -29,6 +29,7 @@ Quote the bus or branch and the value that tripped each row rather than saying "
 | Bus voltage outside [0.95, 1.05] pu in the power-flow results | `voltage-violation-mitigation` |
 | Branch percent loading > 100 | `thermal-overload-mitigation` |
 | `analyze_contingencies` returns binding violations | `contingency-mitigation` |
+| `run_powerflow` fails to converge | `convergence-failure-mitigation` |
 
 ## Deliver
 - The case, base-case status, and monitored findings.
