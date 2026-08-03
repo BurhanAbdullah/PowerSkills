@@ -6,7 +6,7 @@ The skills are packaged as two [Agent Skills](https://agentskills.io/) plugins i
 
 | Plugin | What it is | Skills |
 | --- | --- | --- |
-| [`powerskills-tool`](powerskills-tool/) | Progressive-disclosure workflows for power-system software | 10 |
+| [`powerskills-tool`](powerskills-tool/) | Progressive-disclosure workflows for power-system software | 11 |
 | [`powerskills-engineering`](powerskills-engineering/) | Senior-engineer mitigation playbooks | 10 |
 
 ## How this repo differs from PowerMCP
@@ -22,7 +22,7 @@ Every `powerskills-tool` skill ends with an **Escalation triggers** table that m
 
 ## Available software skills (`powerskills-tool`)
 
-These skills mirror the current software list in PowerMCP.
+These skills mirror the current software list in PowerMCP, except `potpourri`, which has no PowerMCP server yet and is driven through its Python API by the scripts bundled in the skill.
 
 | Skill | Scope | First tools to expose | Advanced tools to expose later |
 | --- | --- | --- | --- |
@@ -35,6 +35,7 @@ These skills mirror the current software list in PowerMCP.
 | [PowerWorld](powerskills-tool/skills/powerworld/) | Steady-state analysis and sensitivities | `open_case`, `run_powerflow`, result queries | contingencies, parameter changes, PTDF or LODF or Jacobian tools |
 | [PyPSA](powerskills-tool/skills/pypsa/) | Planning, OPF, and expansion studies | `load_network` or `create_network`, network inspection | `optimize_network`, `optimize_investment`, import or export flows |
 | [pandapower](powerskills-tool/skills/pandapower/) | AC analysis and screening studies | `load_network` or `create_empty_network`, `get_network_info`, `run_power_flow` | `run_contingency_analysis` |
+| [potpourri](powerskills-tool/skills/potpourri/) | AC/DC and multi-period optimal power flow for pandapower distribution networks, including flexible resources and storage | `scripts/inspect_case.py`, `scripts/solve_opf.py --list-solvers` | `solve_opf.py --formulation dc` then `--formulation ac`, `--horizon N --battery-penetration` |
 | [surge](powerskills-tool/skills/surge/) | Transmission analysis, sensitivities, OPF, contingency, ATC, dispatch | `load_builtin_case` or `load_network`, `get_network_info`, `run_ac_power_flow` | `compute_ptdf` / `compute_lodf`, `run_dc_opf` / `run_scopf`, `run_n1_branch_contingency`, `compute_nerc_atc`, `run_scuc` |
 
 ## Available mitigation skills (`powerskills-engineering`)
@@ -106,7 +107,7 @@ PowerSkills/
 │   ├── .claude-plugin/plugin.json
 │   ├── README.md
 │   └── skills/
-│       ├── andes/ … surge/         # 10 tool skills (pandapower, pypsa, surge bundle scripts + cases)
+│       ├── andes/ … surge/         # 11 tool skills (pandapower, pypsa, potpourri, surge bundle scripts + cases)
 ├── powerskills-engineering/        # plugin: mitigation playbooks
 │   ├── .claude-plugin/plugin.json
 │   ├── README.md
