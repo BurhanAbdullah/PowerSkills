@@ -13,6 +13,17 @@ Expose ANDES tools in stages. Do not jump into dynamics until the base case is l
 3. `run_eigenvalue_analysis(file_path)` to screen oscillatory modes and poor damping.
 4. `run_time_domain_simulation(step_size, t_end)` only after the disturbance and success criteria are explicit.
 
+### Example sequence
+Illustrative run on an ANDES-bundled case:
+```
+run_power_flow("ieee14.xlsx")           -> base case solved, 14 buses, 5 generators
+get_system_info()                       -> dynamic models, governor and exciter types
+run_eigenvalue_analysis("ieee14.xlsx")  -> dominant mode 0.42 Hz, damping 3.1%
+run_time_domain_simulation(0.01, 10.0)  -> generator trip at t=1s, monitor rotor angles
+```
+The 3.1% damping is below the ~5% screening threshold, so this case escalates to
+`dynamic-stability-mitigation` rather than stopping at "the modes look weak".
+
 ## Working rules
 - Re-run the base power flow after any model or dispatch change before dynamic work.
 - State the disturbance, clearing time, monitored channels, and pass or fail criteria before time-domain runs.

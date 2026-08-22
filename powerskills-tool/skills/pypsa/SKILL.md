@@ -15,6 +15,17 @@ Start by creating or loading a named network handle. Use network inspection befo
 5. `optimize_investment(network_name, ...)` for expansion questions.
 6. `import_from_csv_folder(...)` or `export_to_csv_folder(...)` once the network state is worth moving.
 
+### Example sequence
+Using the `case39.nc` network shipped with this skill:
+```
+load_network("case39.nc")                        -> network "case39" active, 39 buses
+get_network_info("case39")                       -> 10 generators, 46 branches, 19 loads
+run_power_flow("case39", linear=False)           -> converged, max branch loading 87%
+optimize_network("case39", solver_name="highs")  -> feasible dispatch, hourly cost reported
+```
+Feasibility first, then dispatch. Only move to `optimize_investment` once a dispatch
+study cannot answer the question.
+
 ## Working rules
 - Do not jump straight into expansion optimization when a dispatch study can answer the question.
 - Use AC or DC power flow to sanity-check a network before relying on optimization outputs.
