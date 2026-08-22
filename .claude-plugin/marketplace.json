@@ -10,10 +10,10 @@
     {
       "name": "powerskills-tool",
       "source": "./powerskills-tool",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "science",
-      "description": "Progressive-disclosure workflows for the power-system software exposed by PowerMCP: ANDES, Egret, LTSpice, OpenDSS, PSLF, PSS/E, PowerWorld, PyPSA, pandapower, and surge. Each skill exposes load, inspect, solve, modify, then advanced studies, and escalates to the powerskills-engineering playbooks when a study finds a real problem.",
-      "keywords": ["power-systems", "power-flow", "opf", "contingency", "pypsa", "pandapower", "psse", "powerworld", "opendss", "andes", "egret", "ltspice", "surge", "powermcp"]
+      "description": "Progressive-disclosure workflows for the power-system software exposed by PowerMCP: ANDES, Egret, LTSpice, OpenDSS, PSLF, PSS/E, PowerWorld, PyPSA, pandapower, and surge, plus potpourri for AC/DC and multi-period optimal power flow on pandapower distribution grids. Each skill exposes load, inspect, solve, modify, then advanced studies, and escalates to the powerskills-engineering playbooks when a study finds a real problem.",
+      "keywords": ["power-systems", "power-flow", "opf", "contingency", "pypsa", "pandapower", "potpourri", "psse", "powerworld", "opendss", "andes", "egret", "ltspice", "surge", "powermcp", "distribution-grid", "multi-period", "storage", "pyomo"]
     },
     {
       "name": "powerskills-engineering",

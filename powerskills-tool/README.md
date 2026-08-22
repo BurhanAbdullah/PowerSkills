@@ -15,8 +15,11 @@ Progressive-disclosure skills for power-system software, designed to sit on top 
 | `powerworld` | Steady-state analysis, contingencies, sensitivities |
 | `pypsa` | Planning, OPF, and capacity-expansion studies |
 | `pandapower` | AC analysis and fast screening |
+| `potpourri` | AC/DC and multi-period OPF for pandapower distribution grids, with flexible resources and storage |
 | `surge` | Transmission analysis, sensitivities, OPF, contingency, ATC, dispatch |
 
-`pandapower`, `pypsa`, and `surge` also bundle runnable `scripts/`, `references/`, and example cases.
+`pandapower`, `pypsa`, `potpourri`, and `surge` also bundle runnable `scripts/`, `references/`, and example cases.
+
+`potpourri` has no PowerMCP server yet, so its ladder drives the installed `opf-potpourri` Python package through the bundled scripts rather than MCP tools.
 
 See the [repository README](../README.md) for install instructions (Claude Code, Codex, Claude Desktop).
