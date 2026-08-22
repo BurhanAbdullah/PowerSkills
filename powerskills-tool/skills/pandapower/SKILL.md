@@ -13,6 +13,17 @@ Start with the network model and a clean base-case solve. Use contingency analys
 3. `run_power_flow(...)` to establish the base operating point.
 4. `run_contingency_analysis(...)` only after the base case solves and the monitoring limits are clear.
 
+### Example sequence
+Using the `case39.json` network shipped with this skill:
+```
+load_network("case39.json")   -> 39 buses, 34 lines, 12 transformers, 10 generators
+get_network_info()            -> confirms slack bus, switch states, and rating fields
+run_power_flow()              -> converged; report min/max res_bus.vm_pu and worst loading_percent
+run_contingency_analysis()    -> ranks N-1 outages by the violations each one causes
+```
+Read the base-case numbers before running contingencies, then use the escalation table
+below on whatever the solve actually reports.
+
 ## Working rules
 - Do not run contingencies before checking the base-case voltages and loading.
 - Use pandapower for AC feasibility and fast screening, then escalate only when the question requires more.

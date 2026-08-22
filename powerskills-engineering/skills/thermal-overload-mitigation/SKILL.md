@@ -13,6 +13,13 @@ Start with the monitored element, the applicable rating, and the driving conditi
 3. Reconfigure topology or switching where operations permit.
 4. Use phase shifters, HVDC schedules, or transformer controls only when sensitivity evidence supports them.
 5. If the issue is persistent, move to reconductoring, uprating, or new facilities.
+6. After each action, re-solve and confirm the overload is relieved. If it is not, continue to the next step.
+
+### Worked example
+Line A-B sits at 105% of its normal rating after the N-1 loss of Line C-D. The PTDF for a
+G3-to-G5 transfer on Line A-B is -0.18 MW/MW, so shifting 40 MW off G3 onto G5 unloads
+A-B by about 7 MW, bringing it to 94%. Re-solving the full monitored contingency set
+confirms the redispatch creates no new violations elsewhere.
 
 ## Working rules
 - Separate normal-rating issues from emergency-rating issues.
