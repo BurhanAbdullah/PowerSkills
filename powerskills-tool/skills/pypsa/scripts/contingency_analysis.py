@@ -16,9 +16,31 @@ Typical usage:
     critical = [r for r in results if r['critical']]
 """
 
+import copy
+
 import pypsa
 import pandas as pd
 from typing import Dict, List, Optional
+
+
+def optimization_succeeded(network: pypsa.Network, result=None) -> bool:
+    """Whether a ``network.optimize()`` call succeeded.
+
+    PyPSA reports the outcome differently across versions, and the skill's
+    ``pypsa>=0.28.0`` requirement is unpinned:
+
+    * 1.x returns ``(status, condition)`` from ``optimize()`` and no longer
+      exposes ``Network.status`` at all.
+    * 0.x returned ``None`` and recorded the outcome on ``network.status``.
+
+    Accept both. Pass the object ``optimize()`` returned as ``result``.
+    """
+    if isinstance(result, tuple) and result:
+        return str(result[0]).lower() == 'ok'
+    status = getattr(network, 'status', None)
+    if isinstance(status, dict):
+        return status.get('status') == 'ok'
+    return False
 
 
 def analyze_single_contingency(
@@ -52,7 +74,8 @@ def analyze_single_contingency(
         }
     """
     # Create copy
-    net_copy = network.deepcopy()
+    # PyPSA 1.x removed Network.deepcopy(); use the stdlib copier.
+    net_copy = copy.deepcopy(network)
     
     # Store original objective if available
     baseline_objective = network.objective if hasattr(network, 'objective') else None
@@ -67,8 +90,8 @@ def analyze_single_contingency(
                 'critical': True,
                 'error': f'Line {element_name} not found'
             }
-        net_copy.mremove("Line", element_name)
-    
+        net_copy.remove("Line", element_name)
+
     elif element_type == 'link':
         if element_name not in net_copy.links.index:
             return {
@@ -78,8 +101,8 @@ def analyze_single_contingency(
                 'critical': True,
                 'error': f'Link {element_name} not found'
             }
-        net_copy.mremove("Link", element_name)
-    
+        net_copy.remove("Link", element_name)
+
     else:
         return {
             'element_type': element_type,
@@ -90,9 +113,10 @@ def analyze_single_contingency(
         }
     
     # Run analysis
+    opt_result = None
     try:
         if method == 'optimize':
-            net_copy.optimize()
+            opt_result = net_copy.optimize()
         elif method == 'lpf':
             net_copy.lpf()
         else:
@@ -114,7 +138,7 @@ def analyze_single_contingency(
     
     # Check convergence
     if method == 'optimize':
-        converged = hasattr(net_copy, 'status') and net_copy.status.get('status') == 'ok'
+        converged = optimization_succeeded(net_copy, opt_result)
     else:
         converged = True  # lpf doesn't have status
     
@@ -411,9 +435,9 @@ if __name__ == "__main__":
     # Run baseline optimization if using optimize method
     if method == 'optimize':
         print("Running baseline optimization...")
-        network.optimize()
-        
-        if not hasattr(network, 'status') or network.status.get('status') != 'ok':
+        baseline_result = network.optimize()
+
+        if not optimization_succeeded(network, baseline_result):
             print("ERROR: Baseline optimization did not converge!")
             sys.exit(1)
         
