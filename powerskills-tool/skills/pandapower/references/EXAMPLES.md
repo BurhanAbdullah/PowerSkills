@@ -207,7 +207,7 @@ print(net.res_line[['p_from_mw', 'loading_percent', 'pl_mw']])
 
 ### Example 8: N-1 Contingency Analysis
 
-\`\`\`python
+```python
 import pandapower as pp
 import pandapower.networks as pn
 
@@ -312,7 +312,7 @@ for r in results:
             print(f"  Overloaded lines:   {r['line_overloads']}")
         if r["trafo_overloads"]:
             print(f"  Overloaded trafos:  {r['trafo_overloads']}")
-\`\`\`
+```
 
 The important distinction is that **failed/diverged contingencies are not treated as secure cases**. A complete sweep should account for every requested outage and report execution status separately from electrical violations.
 
