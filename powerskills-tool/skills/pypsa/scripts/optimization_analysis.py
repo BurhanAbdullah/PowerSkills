@@ -47,6 +47,7 @@ def check_optimization_status(
 
     status = None
     condition = None
+    legacy_status_source = False
 
     if (
         isinstance(optimization_result, (tuple, list))
@@ -56,6 +57,7 @@ def check_optimization_status(
     else:
         legacy_status = getattr(network, 'status', None)
         if isinstance(legacy_status, dict):
+            legacy_status_source = True
             status = legacy_status.get('status')
             condition = legacy_status.get('termination_condition')
             result['solver'] = legacy_status.get('solver', 'unknown')
@@ -65,7 +67,13 @@ def check_optimization_status(
             condition = getattr(model, 'termination_condition', None)
 
     # Fail closed: an objective value alone does not prove a successful solve.
-    converged = status == 'ok' and condition in ('optimal', 'suboptimal')
+    converged = (
+        status == 'ok'
+        and (
+            condition in ('optimal', 'suboptimal')
+            or (legacy_status_source and condition is None)
+        )
+    )
     result['converged'] = converged
     result['status'] = str(status) if status is not None else 'unknown'
     if condition is not None:
