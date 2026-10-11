@@ -32,7 +32,7 @@ def test_validate_skill_reads_utf8_independent_of_locale(
         observed_encodings.append(encoding)
         if encoding != "utf-8":
             raise UnicodeDecodeError("ascii", b"\\x80", 0, 1, "non-ASCII byte")
-        return original_read_text(path, encoding=encoding, errors=errors)
+        return original_read_text(path, encoding=encoding)
 
     monkeypatch.setattr(Path, "read_text", locale_sensitive_read_text)
 
