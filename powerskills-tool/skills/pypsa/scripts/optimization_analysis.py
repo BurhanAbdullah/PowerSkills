@@ -22,21 +22,16 @@ import pandas as pd
 from typing import Dict, List, Optional
 
 
-def check_optimization_status(network: pypsa.Network) -> Dict:
+def check_optimization_status(
+    network: pypsa.Network,
+    optimization_result: Optional[tuple] = None,
+) -> Dict:
     """
-    Check if optimization has been run and was successful.
-    
-    Args:
-        network: PyPSA Network object
-        
-    Returns:
-        dict: {
-            'optimized': bool,
-            'converged': bool,
-            'status': str,
-            'objective': float (if converged),
-            'solver': str (if available)
-        }
+    Check whether optimization has run and whether its result is usable.
+
+    PyPSA 1.x returns (status, termination_condition) from optimize() instead
+    of exposing the old Network.status dictionary. Pass that return value when
+    available. Older PyPSA versions remain supported.
     """
     if not hasattr(network, 'objective') or network.objective is None:
         return {
@@ -44,20 +39,38 @@ def check_optimization_status(network: pypsa.Network) -> Dict:
             'converged': False,
             'status': 'not_run'
         }
-    
+
     result = {
         'optimized': True,
         'objective': float(network.objective)
     }
-    
-    if hasattr(network, 'status'):
-        result['converged'] = network.status.get('status', '') == 'ok'
-        result['status'] = network.status.get('status', 'unknown')
-        result['solver'] = network.status.get('solver', 'unknown')
+
+    status = None
+    condition = None
+
+    if (
+        isinstance(optimization_result, (tuple, list))
+        and len(optimization_result) >= 2
+    ):
+        status, condition = optimization_result[0], optimization_result[1]
     else:
-        result['converged'] = True  # assume success if no status attribute
-        result['status'] = 'ok'
-    
+        legacy_status = getattr(network, 'status', None)
+        if isinstance(legacy_status, dict):
+            status = legacy_status.get('status')
+            condition = legacy_status.get('termination_condition')
+            result['solver'] = legacy_status.get('solver', 'unknown')
+        else:
+            model = getattr(network, 'model', None)
+            status = getattr(model, 'status', None)
+            condition = getattr(model, 'termination_condition', None)
+
+    # Fail closed: an objective value alone does not prove a successful solve.
+    converged = status == 'ok' and condition in ('optimal', 'suboptimal')
+    result['converged'] = converged
+    result['status'] = str(status) if status is not None else 'unknown'
+    if condition is not None:
+        result['termination_condition'] = str(condition)
+
     return result
 
 
@@ -268,7 +281,10 @@ def get_line_loading(network: pypsa.Network) -> Dict:
     }
 
 
-def analyze_optimization(network: pypsa.Network) -> Dict:
+def analyze_optimization(
+    network: pypsa.Network,
+    optimization_result: Optional[tuple] = None,
+) -> Dict:
     """
     Complete optimization results analysis.
     
@@ -280,7 +296,7 @@ def analyze_optimization(network: pypsa.Network) -> Dict:
     Returns:
         dict: Combined results from all optimization analysis functions
     """
-    status = check_optimization_status(network)
+    status = check_optimization_status(network, optimization_result=optimization_result)
     
     if not status['optimized']:
         return {
@@ -379,8 +395,8 @@ if __name__ == "__main__":
     network = pypsa.Network(network_file)
     
     print("Running optimization...")
-    network.optimize()
+    optimization_result = network.optimize()
     
-    # Run analysis
-    results = analyze_optimization(network)
+    # Run analysis with the status returned by PyPSA 1.x.
+    results = analyze_optimization(network, optimization_result=optimization_result)
     print_optimization_report(results)
