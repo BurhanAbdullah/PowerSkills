@@ -70,10 +70,16 @@ def check_violations(
     overloaded_trafos = []
     if len(net.trafo) > 0:
         overloaded_trafos = net.res_trafo[net.res_trafo.loading_percent > loading_limit].index.tolist()
+
+    overloaded_trafo3ws = []
+    if len(net.trafo3w) > 0:
+        overloaded_trafo3ws = net.res_trafo3w[
+            net.res_trafo3w.loading_percent > loading_limit
+        ].index.tolist()
     
     has_violations = bool(
         undervoltage_buses or overvoltage_buses or 
-        overloaded_lines or overloaded_trafos
+        overloaded_lines or overloaded_trafos or overloaded_trafo3ws
     )
     
     return {
@@ -88,8 +94,10 @@ def check_violations(
         'loading': {
             'overloaded_lines': overloaded_lines,
             'overloaded_trafos': overloaded_trafos,
+            'overloaded_trafo3ws': overloaded_trafo3ws,
             'max_line_loading': float(net.res_line.loading_percent.max()) if len(net.res_line) > 0 else 0.0,
-            'max_trafo_loading': float(net.res_trafo.loading_percent.max()) if len(net.trafo) > 0 else 0.0
+            'max_trafo_loading': float(net.res_trafo.loading_percent.max()) if len(net.trafo) > 0 else 0.0,
+            'max_trafo3w_loading': float(net.res_trafo3w.loading_percent.max()) if len(net.trafo3w) > 0 else 0.0
         }
     }
 
@@ -126,10 +134,16 @@ def calculate_losses(net: pp.pandapowerNet) -> Dict:
     if len(net.trafo) > 0:
         trafo_losses_mw = float(net.res_trafo.pl_mw.sum())
         trafo_losses_mvar = float(net.res_trafo.ql_mvar.sum())
+
+    trafo3w_losses_mw = 0.0
+    trafo3w_losses_mvar = 0.0
+    if len(net.trafo3w) > 0:
+        trafo3w_losses_mw = float(net.res_trafo3w.pl_mw.sum())
+        trafo3w_losses_mvar = float(net.res_trafo3w.ql_mvar.sum())
     
     # Total
-    total_losses_mw = line_losses_mw + trafo_losses_mw
-    total_losses_mvar = line_losses_mvar + trafo_losses_mvar
+    total_losses_mw = line_losses_mw + trafo_losses_mw + trafo3w_losses_mw
+    total_losses_mvar = line_losses_mvar + trafo_losses_mvar + trafo3w_losses_mvar
     
     # Generation
     total_generation_mw = 0.0
@@ -147,6 +161,8 @@ def calculate_losses(net: pp.pandapowerNet) -> Dict:
         'line_losses_mvar': line_losses_mvar,
         'trafo_losses_mw': trafo_losses_mw,
         'trafo_losses_mvar': trafo_losses_mvar,
+        'trafo3w_losses_mw': trafo3w_losses_mw,
+        'trafo3w_losses_mvar': trafo3w_losses_mvar,
         'loss_percentage': loss_percentage,
         'total_generation_mw': total_generation_mw
     }
@@ -185,6 +201,7 @@ def summarize_network(net: pp.pandapowerNet) -> Dict:
             'buses': len(net.bus),
             'lines': len(net.line),
             'transformers': len(net.trafo),
+            'three_winding_transformers': len(net.trafo3w),
             'loads': len(net.load),
             'generators': len(net.gen),
             'ext_grids': len(net.ext_grid)
@@ -197,7 +214,8 @@ def summarize_network(net: pp.pandapowerNet) -> Dict:
             'min_voltage': float(net.res_bus.vm_pu.min()),
             'max_voltage': float(net.res_bus.vm_pu.max()),
             'max_line_loading': float(net.res_line.loading_percent.max()) if len(net.res_line) > 0 else 0.0,
-            'max_trafo_loading': float(net.res_trafo.loading_percent.max()) if len(net.trafo) > 0 else 0.0
+            'max_trafo_loading': float(net.res_trafo.loading_percent.max()) if len(net.trafo) > 0 else 0.0,
+            'max_trafo3w_loading': float(net.res_trafo3w.loading_percent.max()) if len(net.trafo3w) > 0 else 0.0
         }
     
     return summary
@@ -289,6 +307,8 @@ def print_analysis_report(analysis_results: Dict):
             print(f"  ⚠️  Overloaded lines: {len(l['overloaded_lines'])}")
         if l['overloaded_trafos']:
             print(f"  ⚠️  Overloaded transformers: {len(l['overloaded_trafos'])}")
+        if l['overloaded_trafo3ws']:
+            print(f"  ⚠️  Overloaded three-winding transformers: {len(l['overloaded_trafo3ws'])}")
     else:
         print("  ✓ No violations")
     
@@ -297,6 +317,8 @@ def print_analysis_report(analysis_results: Dict):
     print(f"  Lines: {losses['line_losses_mw']:.2f} MW")
     if summary['elements']['transformers'] > 0:
         print(f"  Transformers: {losses['trafo_losses_mw']:.2f} MW")
+    if summary['elements']['three_winding_transformers'] > 0:
+        print(f"  Three-winding transformers: {losses['trafo3w_losses_mw']:.2f} MW")
     
     print("="*60)
 
