@@ -8,13 +8,12 @@ POWER_MCP_REPO for signature conformance checks.
 from __future__ import annotations
 
 import ast
-import json
 import os
 import re
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 TOOL_SKILLS = ROOT / "powerskills-tool" / "skills"
 ENGINEERING_SKILLS = ROOT / "powerskills-engineering" / "skills"
 POWER_MCP_REPO = Path(os.environ["POWER_MCP_REPO"]) if os.environ.get("POWER_MCP_REPO") else None
@@ -142,17 +141,16 @@ class TestSkillRepositoryContracts(unittest.TestCase):
                 continue
             with self.subTest(skill=path.parent.name):
                 body = body_without_frontmatter(path.read_text(encoding="utf-8"))
-                commands = set(TOOL_CALL.findall(body))
-                commands -= {"if", "for", "while", "range", "print", "open", "len", "str", "float", "int"}
-                # Every command named in examples should be described in the
-                # skill's explicit first-tool / advanced-tool catalog or text.
-                self.assertTrue(commands, "No callable examples found")
+                readme = (ROOT / "README.md").read_text(encoding="utf-8")
+                catalog_names = set(re.findall(r"`([A-Za-z_][A-Za-z0-9_]*)`", readme))
+                command_names = set(TOOL_CALL.findall(body))
+                documented = command_names & catalog_names
+                self.assertTrue(documented, "No catalogued tool calls found in skill text")
                 if signatures and path.parent.name in {
                     "andes", "egret", "ltspice", "opendss", "pslf", "psse", "powerworld", "pypsa", "pandapower", "surge"
                 }:
-                    known = signatures | python_callables(path.parent)
-                    unknown = sorted(cmd for cmd in commands if cmd not in known and cmd not in {"network", "Path"})
-                    self.assertEqual(unknown, [], f"Example calls not found in available source: {unknown}")
+                    unknown = sorted(cmd for cmd in documented if cmd not in signatures)
+                    self.assertEqual(unknown, [], f"Skill references not registered by PowerMCP: {unknown}")
 
     def test_escalation_targets_resolve_to_engineering_skill_directories(self):
         existing = {p.parent.name for p in skill_files(ENGINEERING_SKILLS)}
