@@ -23,9 +23,13 @@ def parse_skill(path: Path) -> tuple[str, list[str]]:
         return text, ["missing or malformed YAML frontmatter"]
     closing = text.find("\n---", 4)
     body = text[closing + 4:]
-    if not re.search(r"(?mi)^#{1,3}\s+Escalation triggers\s*$", body):
-        issues.append("missing Escalation triggers section")
-    if "powerskills-tool" in path.parts:
+    is_tool_skill = "powerskills-tool" in path.parts
+    if is_tool_skill:
+        if not re.search(r"(?mi)^#{1,3}\s+Escalation triggers\s*$", body):
+            issues.append("missing Escalation triggers section")
+    elif not re.search(r"(?mi)^#{1,3}\s+Preferred action order\s*$", body):
+        issues.append("missing Preferred action order section")
+    if is_tool_skill:
         if not re.search(r"(?mi)^#{1,3}\s+(Default tool ladder|Default ladder)\s*$", body):
             issues.append("missing default tool ladder")
         ladder = re.search(r"(?is)#{1,3}\s+(?:Default tool ladder|Default ladder)\s*\n(.*?)(?=\n#{1,3}\s|\Z)", body)
