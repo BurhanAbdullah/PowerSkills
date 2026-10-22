@@ -25,7 +25,7 @@ def parse_skill(path: Path) -> tuple[str, list[str]]:
     body = text[closing + 4:]
     if not re.search(r"(?mi)^#{1,3}\s+Escalation triggers\s*$", body):
         issues.append("missing Escalation triggers section")
-    if path.parent.parent.name == "skills" and path.parent.parent.parent.name == "powerskills-tool":
+    if "powerskills-tool" in path.parts:
         if not re.search(r"(?mi)^#{1,3}\s+(Default tool ladder|Default ladder)\s*$", body):
             issues.append("missing default tool ladder")
         ladder = re.search(r"(?is)#{1,3}\s+(?:Default tool ladder|Default ladder)\s*\n(.*?)(?=\n#{1,3}\s|\Z)", body)
