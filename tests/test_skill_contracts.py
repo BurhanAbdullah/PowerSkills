@@ -8,6 +8,7 @@ POWER_MCP_REPO for signature conformance checks.
 from __future__ import annotations
 
 import ast
+import importlib.util
 import os
 import re
 import unittest
@@ -50,7 +51,7 @@ def referenced_local_assets(skill_dir: Path, body: str) -> list[str]:
         raw = raw.rstrip(".,;:")
         refs.add(raw)
     # Explicit root-level data files are local assets too.
-    for raw in re.findall(r"`([A-Za-z0-9_.-]+\.(?:json|nc|csv|dss|xlsx|sav|raw|dyr))`", body):
+    for raw in re.findall(r"`([A-Za-z0-9_.-]+\.(?:py|sh|yaml|yml|md|txt|json|nc|csv|dss|xlsx|sav|raw|dyr))`", body):
         refs.add(raw)
     missing = []
     for ref in sorted(refs):
@@ -102,7 +103,30 @@ def mcp_tool_signatures(repo: Path) -> set[str]:
     return signatures
 
 
+CONTRACT_VALIDATOR_PATH = ROOT / "skill-creator" / "scripts" / "contract_validate.py"
+CONTRACT_SPEC = importlib.util.spec_from_file_location("contract_validate", CONTRACT_VALIDATOR_PATH)
+assert CONTRACT_SPEC is not None and CONTRACT_SPEC.loader is not None
+contract_validate = importlib.util.module_from_spec(CONTRACT_SPEC)
+CONTRACT_SPEC.loader.exec_module(contract_validate)
+
+
 class TestSkillRepositoryContracts(unittest.TestCase):
+    def test_missing_root_level_python_asset_is_reported(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp_dir:
+            skill_dir = Path(temp_dir) / "example-skill"
+            skill_dir.mkdir()
+            skill = skill_dir / "SKILL.md"
+            skill.write_text(
+                "---\nname: example-skill\ndescription: test skill\n---\n"
+                "## Preferred action order\nInspect the case first.\n"
+                "## Deliver\nReport the result.\n"
+                "The workflow references `missing_runtime_file.py`.\n",
+                encoding="utf-8",
+            )
+            _, issues = contract_validate.parse_skill(skill)
+            self.assertIn("missing bundled asset: missing_runtime_file.py", issues)
+
     def test_expected_skill_catalog_is_present(self):
         self.assertEqual({p.parent.name for p in skill_files(TOOL_SKILLS)}, EXPECTED_TOOL_SKILLS)
         self.assertEqual({p.parent.name for p in skill_files(ENGINEERING_SKILLS)}, EXPECTED_ENGINEERING_SKILLS)
