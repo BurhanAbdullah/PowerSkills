@@ -208,6 +208,7 @@ print(net.res_line[['p_from_mw', 'loading_percent', 'pl_mw']])
 ### Example 8: N-1 Contingency Analysis
 
 ```python
+import copy
 import pandapower as pp
 import pandapower.networks as pn
 
@@ -224,7 +225,7 @@ results = []
 
 # Test each line outage.
 for line_idx in net.line.index:
-    test_net = net.deepcopy()
+    test_net = copy.deepcopy(net)
     test_net.line.at[line_idx, "in_service"] = False
 
     try:
