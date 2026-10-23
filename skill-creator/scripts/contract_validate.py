@@ -12,7 +12,7 @@ SKILL_ROOTS = (
     ROOT / "powerskills-engineering" / "skills",
 )
 REF_PATTERN = re.compile(r"`((?:scripts|references|assets|evals)/[^'`\s)]+)`")
-ROOT_ASSET_PATTERN = re.compile(r"`([A-Za-z0-9_.-]+\.(?:json|nc|csv|dss|xlsx|sav|raw|dyr))`")
+ROOT_ASSET_PATTERN = re.compile(r"`([A-Za-z0-9_.-]+\.(?:py|sh|yaml|yml|md|txt|json|nc|csv|dss|xlsx|sav|raw|dyr))`")
 TOOL_PATTERN = re.compile(r"`([A-Za-z_][A-Za-z0-9_]*)\s*\(")
 
 
