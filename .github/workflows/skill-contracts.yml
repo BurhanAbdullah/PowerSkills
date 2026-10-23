@@ -2,7 +2,7 @@ name: Skill contract verification
 
 on:
   push:
-    branches: [main]
+    branches: [main, test/engineering-skill-contract-verification]
   pull_request:
 
 permissions:
