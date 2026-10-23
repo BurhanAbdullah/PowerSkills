@@ -39,7 +39,12 @@ def parse_skill(path: Path) -> tuple[str, list[str]]:
                 issues.append("workflow does not start from the base case")
     if not re.search(r"(?mi)^#{1,3}\s+(Deliver|Report back)\s*$", body):
         issues.append("missing Deliver section")
-    refs = set(REF_PATTERN.findall(body)) | set(ROOT_ASSET_PATTERN.findall(body))
+    path_refs = set(REF_PATTERN.findall(body))
+    path_basenames = {Path(ref).name for ref in path_refs}
+    root_refs = set(ROOT_ASSET_PATTERN.findall(body))
+    # A basename mentioned in prose is not a second root-level asset when the
+    # same file is already referenced with its bundled relative path.
+    refs = path_refs | {ref for ref in root_refs if ref not in path_basenames}
     for ref in sorted(refs):
         if not (path.parent / ref).exists():
             issues.append(f"missing bundled asset: {ref}")
