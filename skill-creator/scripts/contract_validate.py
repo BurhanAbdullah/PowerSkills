@@ -37,7 +37,7 @@ def parse_skill(path: Path) -> tuple[str, list[str]]:
             first = next((line for line in ladder.group(1).splitlines() if line.strip()), "").lower()
             if re.search(r"contingenc|eigenvalue|time.domain|optim[iz]e|harmonic|unit.commitment", first):
                 issues.append("workflow does not start from the base case")
-    if not re.search(r"(?mi)^#{1,3}\s+Deliver\s*$", body):
+    if not re.search(r"(?mi)^#{1,3}\s+(Deliver|Report back)\s*$", body):
         issues.append("missing Deliver section")
     refs = set(REF_PATTERN.findall(body)) | set(ROOT_ASSET_PATTERN.findall(body))
     for ref in sorted(refs):
