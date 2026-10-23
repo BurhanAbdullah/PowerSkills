@@ -283,11 +283,14 @@ converged = sum(r["status"] == "converged" for r in results)
 failed = sum(r["status"] == "failed" for r in results)
 diverged = sum(r["status"] == "diverged" for r in results)
 critical = sum(
-    r["status"] != "converged"
-    or r["voltage_violations"]
-    or r["line_overloads"]
-    or r["trafo_overloads"]
+    1
     for r in results
+    if (
+        r["status"] != "converged"
+        or r["voltage_violations"]
+        or r["line_overloads"]
+        or r["trafo_overloads"]
+    )
 )
 
 print("=== N-1 Contingency Results ===")
