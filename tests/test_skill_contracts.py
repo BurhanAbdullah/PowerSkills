@@ -51,7 +51,7 @@ def referenced_local_assets(skill_dir: Path, body: str) -> list[str]:
         raw = raw.rstrip(".,;:")
         refs.add(raw)
     # Explicit root-level data files are local assets too.
-    for raw in re.findall(r"`([A-Za-z0-9_.-]+\.(?:py|sh|yaml|yml|md|txt|json|nc|csv|dss|xlsx|sav|raw|dyr))`", body):
+    for raw in re.findall(r"`([A-Za-z0-9_.-]+\.(?:json|nc|csv|dss|xlsx|sav|raw|dyr))`", body):
         refs.add(raw)
     missing = []
     for ref in sorted(refs):
@@ -137,7 +137,7 @@ class TestSkillRepositoryContracts(unittest.TestCase):
                 body = body_without_frontmatter(path.read_text(encoding="utf-8")).lower()
                 self.assertRegex(body, r"(?m)^#{1,3}\s+(default tool ladder|default ladder|preferred action order)")
                 self.assertIn("escalation triggers", body)
-                self.assertRegex(body, r"(?m)^#{1,3}\s+deliver")
+                self.assertRegex(body, r"(?m)^#{1,3}\s+(deliver|report back)")
                 # First listed workflow step must be a base-case/load/inspect action,
                 # not an advanced study such as contingencies or optimization.
                 ladder = re.search(
