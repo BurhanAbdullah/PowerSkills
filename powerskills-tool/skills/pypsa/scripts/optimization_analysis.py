@@ -15,7 +15,7 @@ Typical usage:
     results = analyze_optimization(network)
     if results['converged']:
         print(f"Total cost: {results['objective']}")
-```
+"""
 
 import pypsa
 import pandas as pd

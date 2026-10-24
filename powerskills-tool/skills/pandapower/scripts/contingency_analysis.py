@@ -14,6 +14,8 @@ Typical usage:
     critical = [r for r in results if r['critical']]
 """
 
+import copy
+
 import pandapower as pp
 import pandas as pd
 from typing import Dict, List, Optional
@@ -53,7 +55,8 @@ def analyze_single_contingency(
         }
     """
     # Create copy and disconnect element
-    net_copy = net.deepcopy()
+    # pandapower 3.x removed pandapowerNet.deepcopy(); use the stdlib copier.
+    net_copy = copy.deepcopy(net)
     net_copy[element_type].at[element_idx, 'in_service'] = False
     
     # Run power flow
